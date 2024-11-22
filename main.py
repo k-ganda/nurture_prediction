@@ -1,10 +1,6 @@
 from fastapi import FastAPI, HTTPException, status, UploadFile, File, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
 from pydantic import BaseModel, Field
 import pandas as pd
 import joblib
