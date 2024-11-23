@@ -5,3 +5,4 @@ pandas
 openpyxl
 joblib
 scikit-learn==1.2.2
+numpy==1.23.0
