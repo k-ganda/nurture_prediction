@@ -7,3 +7,4 @@ numpy==1.23.0
 fastapi
 uvicorn
 python-multipart
+imbalanced-learn
