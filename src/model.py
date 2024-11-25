@@ -7,8 +7,10 @@ from sklearn.metrics import (
     confusion_matrix,
     mean_squared_error,
 )
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from src.preprocessing import preprocess_and_save
+from preprocessing import preprocess_and_save
 
 def train_and_evaluate_model(filepath, model_dir='./models'):
     if not os.path.exists(model_dir):
@@ -25,33 +27,30 @@ def train_and_evaluate_model(filepath, model_dir='./models'):
     y_val_pred = model.predict(X_val_scaled)
     
     # Evaluation on val set
-    mse = mean_squared_error(y_val, y_val_pred)
-    val_accuracy = accuracy_score(y_val, y_val_pred)
-    val_confusion_matrix = confusion_matrix(y_val, y_val_pred)
-    val_classification_report = classification_report(
-        y_val, y_val_pred, target_names=["High Risk", "Low Risk", "Mid Risk"]
-    )
-
-    print("\nValidation Results:")
-    print("Mean Squared Error (MSE):", mse)
-    print("Validation Accuracy:", val_accuracy)
-    print("Validation Confusion Matrix:\n", val_confusion_matrix)
-    print("Validation Classification Report:\n", val_classification_report)
+    val_metrics = {
+        "mse": mean_squared_error(y_val, y_val_pred),
+        "accuracy": accuracy_score(y_val, y_val_pred),
+        "confusion_matrix": confusion_matrix(y_val, y_val_pred).tolist(),
+        "classification_report": classification_report(
+            y_val, y_val_pred, target_names=["High Risk", "Low Risk", "Mid Risk"], output_dict=True
+        ),
+    }
+    print("Validation Metrics:", val_metrics)
 
     # Predictions on test set
     y_test_pred = model.predict(X_test_scaled)
 
     # Evaluate on test set
-    test_accuracy = accuracy_score(y_test, y_test_pred)
-    test_confusion_matrix = confusion_matrix(y_test, y_test_pred)
-    test_classification_report = classification_report(
-        y_test, y_test_pred, target_names=["High Risk", "Low Risk", "Mid Risk"]
-    )
+    test_metrics = {
+        "accuracy": accuracy_score(y_test, y_test_pred),
+        "confusion_matrix": confusion_matrix(y_test, y_test_pred).tolist(),
+        "classification_report": classification_report(
+            y_test, y_test_pred, target_names=["High Risk", "Low Risk", "Mid Risk"], output_dict=True
+        ),
+    }
 
-    print("\nTest Results:")
-    print("Test Accuracy:", test_accuracy)
-    print("Test Confusion Matrix:\n", test_confusion_matrix)
-    print("Test Classification Report:\n", test_classification_report)
+    
+    
 
     # Save the trained model as a pickle file
     model_path = os.path.join(model_dir, "random_forest_model.pkl")
@@ -63,10 +62,11 @@ def train_and_evaluate_model(filepath, model_dir='./models'):
         print(f"\nModel already exists at: {model_path}. Skipping save.")
 
     print("Model training and evaluation completed!")
-    return model, label_encoder
+    return model, label_encoder, {"test_metrics": test_metrics}
 
 
 
 if __name__ == "__main__":
     file_path = "maternal_health_risk.csv"  
-    trained_model, label_encoder = train_and_evaluate_model(file_path)
+    trained_model, label_encoder, metrics = train_and_evaluate_model(file_path)
+    print("Test Metrics:", metrics["test_metrics"])

@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, status, UploadFile, File, Query, Body
+from fastapi import FastAPI, HTTPException, status, UploadFile, File, Query, Body, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import pandas as pd
+import logging
 import joblib
 import os
 
@@ -11,7 +12,7 @@ app = FastAPI()
 # Enable CORS for testing with Postman or a frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5000", "http://127.0.0.1:8000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -66,16 +67,16 @@ async def upload_data(file: UploadFile = File(...)):
     Upload new data for retraining the model
     
     Args:
-    file (UploadFile): The uploaded file (CSV or Excel).
+    file (UploadFile): The uploaded file (CSV).
     
     Returns:
     JSONResponse: A success message or an error message.
     """
     try:
         # Check the file's content type
-        allowed_types = ["text/csv", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]
+        allowed_types = ["text/csv"]
         if file.content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail="Invalid file type. Only CSV or Excel files are allowed.")
+            raise HTTPException(status_code=400, detail="Invalid file type. Only CSV files are allowed.")
         
         file_location = os.path.join(upload_dir, file.filename)
         with open(file_location, "wb") as f:
@@ -84,10 +85,9 @@ async def upload_data(file: UploadFile = File(...)):
         normalized_file_path = os.path.normpath(file_location)
 
         # Read the file into a Pandas DataFrame
-        if file.content_type == "text/csv":
-            df = pd.read_csv(normalized_file_path)
-        else:
-            df = pd.read_excel(normalized_file_path)
+        
+        df = pd.read_csv(normalized_file_path)
+        
 
         # Validate the columns (assuming specific columns are expected)
         expected_columns = {"Age", "SystolicBP", "DiastolicBP", "BS", "BodyTemp", "HeartRate", "RiskLevel"}
@@ -107,8 +107,14 @@ async def upload_data(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+class RetrainRequest(BaseModel):
+    file_path: str
+
 @app.post("/retrain", status_code=status.HTTP_200_OK)
-async def retrain(file_path: str = Body(...)):
+async def retrain(request: RetrainRequest):
     """
     Retrain the model using uploaded data and evaluate it.
     
@@ -121,8 +127,11 @@ async def retrain(file_path: str = Body(...)):
     from src.model import train_and_evaluate_model
     import pickle
     
+    file_path = request.file_path
+    print(f"Received file path: {file_path}")
      
     try:
+        logger.debug(f"Received file path: '{file_path}'")
         file_path = os.path.normpath(file_path)
         # Ensure the file exists
         if not os.path.exists(file_path):
@@ -130,7 +139,7 @@ async def retrain(file_path: str = Body(...)):
         
         
         # Reuse the existing training pipeline (includes preprocessing)
-        model, label_encoder = train_and_evaluate_model(file_path)
+        model, label_encoder, evaluation_metrics = train_and_evaluate_model(file_path)
 
         # Versioning: Save the retrained model with a new version number
         version = 1
@@ -147,6 +156,7 @@ async def retrain(file_path: str = Body(...)):
             "message": "Model retrained successfully!",
             "model_version": version,
             "model_path": model_filename,
+            "evaluation_metrics": evaluation_metrics,
         }
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(err)}")
