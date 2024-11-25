@@ -87,7 +87,7 @@ Open the notebook from the jupyter interface.
 
 To load and run the requests:
 
-``locust --host=https://nurture-prediction.onrender.com`
+`locust -f locustfile.py --host=https://nurture-prediction.onrender.com`
 
 Open the Locust interface from the link provided in your terminal, configure the number of users and spawn rate, and start the test.
 

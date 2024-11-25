@@ -1,4 +1,4 @@
-from locustfile import HttpUser, task, between
+from locust import HttpUser, task, between
 import random
 
 class NurturePredictionUser(HttpUser):
@@ -27,5 +27,5 @@ class NurturePredictionUser(HttpUser):
         else:
             print(f"Prediction failed with status code {response.status_code}: {response.text}")
 
-        # Optionally log the response time
+        # log the response time
         print(f"Response time: {response.elapsed.total_seconds()} seconds")
