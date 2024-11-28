@@ -89,7 +89,7 @@ async def upload_data(file: UploadFile = File(...)):
         df = pd.read_csv(normalized_file_path)
         
 
-        # Validate the columns (assuming specific columns are expected)
+        # Validating the columns
         expected_columns = {"Age", "SystolicBP", "DiastolicBP", "BS", "BodyTemp", "HeartRate", "RiskLevel"}
         if not expected_columns.issubset(df.columns):
             os.remove(normalized_file_path)
