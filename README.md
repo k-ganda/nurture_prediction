@@ -42,7 +42,7 @@ The deployed app contains five key pages:
 
 5. **Predict:** Input feature values and click **Predict** to receive risk level predictions. This page also explains the meaning of each predicted value and includes instructions for proper use.
 
-Please NOTE that it may take some time to make requests for the retraining and prediction due to inactivity, we therefore ask that you be patient as the server gets active.
+Please NOTE that it may take some time to process requests for retraining and prediction due to periods of inactivity. We kindly ask for your patience as the server activates and begins processing.
 
 ## Docker Image Deployment
 

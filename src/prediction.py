@@ -75,7 +75,7 @@ if __name__ == "__main__":
     label_encoder = load_label_encoder()
     scaler = load_scaler()
 
-    # Example data for prediction (adjust the feature values as needed)
+    # Example data for prediction
     example_data = pd.DataFrame({
         "Age": [25],
         "SystolicBP": [130],

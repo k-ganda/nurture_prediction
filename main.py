@@ -9,7 +9,7 @@ import os
 
 app = FastAPI()
 
-# Enable CORS for testing with Postman or a frontend
+# Enable CORS for testing 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
